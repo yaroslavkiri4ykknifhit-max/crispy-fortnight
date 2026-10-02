@@ -9,7 +9,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'https://krepkipol.by'
+BASE = 'https://yaroslavkiri4ykknifhit-max.github.io/crispy-fortnight'
+PREFIX = '/crispy-fortnight'
 PHONE = '+375445776348'
 errors = []
 
@@ -106,8 +107,9 @@ for file in sorted(ROOT.rglob('*.html')):
 for path, page in pages.items():
     for link in page.links:
         parsed = urlsplit(link)
-        if parsed.scheme and not (parsed.scheme == 'https' and parsed.netloc == 'krepkipol.by'): continue
+        if parsed.scheme and not (parsed.scheme == 'https' and parsed.netloc == 'yaroslavkiri4ykknifhit-max.github.io'): continue
         target = unquote(parsed.path) or path
+        if target.startswith(PREFIX + '/'): target = target[len(PREFIX):]
         if not target.startswith('/'): target = str(Path(path).parent / target)
         dest = ROOT / target.lstrip('/')
         if target.endswith('/'): dest /= 'index.html'
@@ -127,7 +129,7 @@ robots = (ROOT / 'robots.txt').read_text()
 check('Disallow: /\n' not in robots, 'Robots blocks the whole site')
 check('Sitemap: ' + BASE + '/sitemap.xml' in robots, 'Robots lacks sitemap')
 check('Clean-param:' in robots, 'Yandex tracking parameter handling missing')
-check((ROOT / 'CNAME').read_text().strip() == 'krepkipol.by', 'Wrong CNAME')
+check(not (ROOT / 'CNAME').exists(), 'Custom domain must remain disconnected')
 for file in ROOT.glob('*.css'):
     for asset in re.findall(r'url\([\'"]?([^\)\'"\s]+)', file.read_text()):
         if not asset.startswith(('data:', 'https:', 'http:')):
@@ -143,6 +145,7 @@ while pending:
         parsed = urlsplit(href)
         if parsed.scheme or not parsed.path.startswith('/'): continue
         target = parsed.path
+        if target.startswith(PREFIX + '/'): target = target[len(PREFIX):]
         if target in pages and target not in seen:
             seen.add(target); pending.append(target)
 check(set(pages) - {'/404.html'} <= seen, 'Orphan indexable pages exist')
