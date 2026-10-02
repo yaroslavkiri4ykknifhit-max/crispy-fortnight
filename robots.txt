@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /tools/
+Disallow: /README.txt
+Disallow: /SEO_SETUP.md
+
+User-agent: Yandex
+Allow: /
+Disallow: /tools/
+Disallow: /README.txt
+Disallow: /SEO_SETUP.md
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&yclid&gclid&fbclid /
+
+Sitemap: https://krepkipol.by/sitemap.xml

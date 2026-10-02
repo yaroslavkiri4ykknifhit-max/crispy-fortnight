@@ -1,0 +1,21 @@
+name: Check static site
+on:
+  push:
+    branches: [main]
+    paths: ['**/*.html', '**/*.css', '**/*.js', 'assets/**', 'sitemap.xml', 'robots.txt', 'CNAME', 'site.webmanifest', 'tools/**', '.github/workflows/check-site.yml']
+  pull_request:
+    paths: ['**/*.html', '**/*.css', '**/*.js', 'assets/**', 'sitemap.xml', 'robots.txt', 'CNAME', 'site.webmanifest', 'tools/**', '.github/workflows/check-site.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate crawlable pages and metadata
+        run: python tools/check_site.py
+      - name: Validate JavaScript syntax
+        run: node --check script.js
