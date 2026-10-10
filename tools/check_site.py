@@ -9,8 +9,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'https://yaroslavkiri4ykknifhit-max.github.io/crispy-fortnight'
-PREFIX = '/crispy-fortnight'
+BASE = 'https://krepkipol.by'
 PHONE = '+375445776348'
 errors = []
 
@@ -75,6 +74,7 @@ for file in sorted(ROOT.rglob('*.html')):
     path = '/' if relative == 'index.html' else '/' + relative.removesuffix('index.html') if relative.endswith('/index.html') else '/' + relative
     page = Page(relative)
     source = file.read_text(encoding='utf-8')
+    check('github.io' not in source and '/crispy-fortnight/' not in source, f'{relative}: old GitHub Pages URL remains')
     page.feed(source)
     pages[path] = page
     check(page.h1 == 1, f'{relative}: expected exactly one H1')
@@ -107,9 +107,8 @@ for file in sorted(ROOT.rglob('*.html')):
 for path, page in pages.items():
     for link in page.links:
         parsed = urlsplit(link)
-        if parsed.scheme and not (parsed.scheme == 'https' and parsed.netloc == 'yaroslavkiri4ykknifhit-max.github.io'): continue
+        if parsed.scheme and not (parsed.scheme == 'https' and parsed.netloc == urlsplit(BASE).netloc): continue
         target = unquote(parsed.path) or path
-        if target.startswith(PREFIX + '/'): target = target[len(PREFIX):]
         if not target.startswith('/'): target = str(Path(path).parent / target)
         dest = ROOT / target.lstrip('/')
         if target.endswith('/'): dest /= 'index.html'
@@ -129,13 +128,16 @@ robots = (ROOT / 'robots.txt').read_text()
 check('Disallow: /\n' not in robots, 'Robots blocks the whole site')
 check('Sitemap: ' + BASE + '/sitemap.xml' in robots, 'Robots lacks sitemap')
 check('Clean-param:' in robots, 'Yandex tracking parameter handling missing')
-check(not (ROOT / 'CNAME').exists(), 'Custom domain must remain disconnected')
+check(not (ROOT / 'CNAME').exists(), 'External hosting must not use a GitHub Pages CNAME file')
 for file in ROOT.glob('*.css'):
     for asset in re.findall(r'url\([\'"]?([^\)\'"\s]+)', file.read_text()):
         if not asset.startswith(('data:', 'https:', 'http:')):
             check((ROOT / asset.lstrip('/')).is_file(), f'{file.name}: missing CSS asset {asset}')
 manifest = json.loads((ROOT / 'site.webmanifest').read_text())
 check(manifest.get('name') == 'Крепкий пол', 'Wrong manifest name')
+check(manifest.get('start_url') == '/', 'Manifest must start at the domain root')
+for icon in manifest.get('icons', []):
+    check((ROOT / icon['src'].lstrip('/')).is_file(), 'Missing manifest icon')
 # All indexable pages can be discovered by ordinary HTML links from the home page.
 seen = {'/'}
 pending = ['/']
@@ -145,7 +147,6 @@ while pending:
         parsed = urlsplit(href)
         if parsed.scheme or not parsed.path.startswith('/'): continue
         target = parsed.path
-        if target.startswith(PREFIX + '/'): target = target[len(PREFIX):]
         if target in pages and target not in seen:
             seen.add(target); pending.append(target)
 check(set(pages) - {'/404.html'} <= seen, 'Orphan indexable pages exist')

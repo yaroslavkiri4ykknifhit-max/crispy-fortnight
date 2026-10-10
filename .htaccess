@@ -1,0 +1,4 @@
+# Apache shared hosting: directory index and genuine 404 responses.
+# Enable HTTPS and www redirects in the hosting panel after SSL issuance.
+DirectoryIndex index.html
+ErrorDocument 404 /404.html
