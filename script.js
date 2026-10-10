@@ -1,4 +1,18 @@
 'use strict';
+// A phone-link click expresses intent; it does not confirm a completed call.
+document.addEventListener('click', event => {
+  if (!(event.target instanceof Element)) return;
+  const link = event.target.closest('a[href^="tel:"]');
+  if (!link || typeof window.gtag !== 'function') return;
+  const location = link.closest('.header') ? 'header'
+    : link.classList.contains('mobile-call') ? 'mobile'
+    : link.closest('footer') ? 'footer' : 'content';
+  window.gtag('event', 'phone_click', {
+    send_to: 'G-V1LNWC9XXD',
+    contact_method: 'phone',
+    link_location: location
+  });
+});
 const menuButton = document.querySelector('.menu-toggle');
 const menu = document.querySelector('.nav');
 function closeMenu() {
