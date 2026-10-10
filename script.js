@@ -3,15 +3,17 @@
 document.addEventListener('click', event => {
   if (!(event.target instanceof Element)) return;
   const link = event.target.closest('a[href^="tel:"]');
-  if (!link || typeof window.gtag !== 'function') return;
+  if (!link) return;
   const location = link.closest('.header') ? 'header'
     : link.classList.contains('mobile-call') ? 'mobile'
     : link.closest('footer') ? 'footer' : 'content';
-  window.gtag('event', 'phone_click', {
-    send_to: 'G-V1LNWC9XXD',
-    contact_method: 'phone',
-    link_location: location
-  });
+  const params = { contact_method: 'phone', link_location: location };
+  if (typeof window.gtag === 'function') {
+    window.gtag('event', 'phone_click', { send_to: 'G-V1LNWC9XXD', ...params });
+  }
+  if (typeof window.ym === 'function') {
+    window.ym(113597384, 'reachGoal', 'phone_click', params);
+  }
 });
 const menuButton = document.querySelector('.menu-toggle');
 const menu = document.querySelector('.nav');
